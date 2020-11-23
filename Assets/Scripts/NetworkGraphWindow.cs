@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,11 +10,12 @@ public class NetworkGraphWindow : MonoBehaviour
     [SerializeField] private Sprite nodeSprite;
     [SerializeField] private float nodeSize;
     [SerializeField] private float edgeWidth;
+    [SerializeField] private List<int> layers;
     private RectTransform _graphContainer;
     private void Awake()
     {
         _graphContainer = transform.Find("Graph Container").GetComponent<RectTransform>();
-        CreateNetwork(new List<int> {5, 10, 5});
+        CreateNetwork(layers);
     }
 
     private List<Vector2> GetNodePositions(List<int> layerSizes, float viewWidth, float viewHeight)
@@ -31,24 +33,18 @@ public class NetworkGraphWindow : MonoBehaviour
         return positions;
     }
 
-    private GameObject CreateNode(Vector2 position)
-    {
-        var node = new GameObject("Node", typeof(Image));
-        node.transform.SetParent(_graphContainer, false);
-        node.GetComponent<Image>().sprite = nodeSprite;
-        var rectTransform = node.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = position;
-        rectTransform.sizeDelta = new Vector2(nodeSize, nodeSize);
-        rectTransform.anchorMin = new Vector2(0, 0);
-        rectTransform.anchorMax = new Vector2(0, y: 0);
-        return node;
-    }
-
     private void CreateNodes(List<Vector2> nodePositions)
     {
-        foreach (var nodePosition in nodePositions)
+        foreach (var position in nodePositions)
         {
-            CreateNode(nodePosition);
+            var node = new GameObject("Node", typeof(Image));
+            node.transform.SetParent(_graphContainer, false);
+            node.GetComponent<Image>().sprite = nodeSprite;
+            var rectTransform = node.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = position;
+            rectTransform.sizeDelta = new Vector2(nodeSize, nodeSize);
+            rectTransform.anchorMin = new Vector2(0, 0);
+            rectTransform.anchorMax = new Vector2(0, y: 0);
         }
     }
 
@@ -59,8 +55,11 @@ public class NetworkGraphWindow : MonoBehaviour
         var rectTransform = edge.GetComponent<RectTransform>();
         rectTransform.anchorMin = new Vector2(0, 0);
         rectTransform.anchorMax = new Vector2(0, 0);
-        rectTransform.sizeDelta = new Vector2(100, edgeWidth);
-        rectTransform.anchoredPosition = firstVertex;
+        var direction = (secondVertex - firstVertex).normalized;
+        var distance = Vector2.Distance(firstVertex, secondVertex);
+        rectTransform.sizeDelta = new Vector2(distance, edgeWidth);
+        rectTransform.anchoredPosition = firstVertex + direction * distance * 0.5f;
+        rectTransform.localEulerAngles = new Vector3(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
     }
 
     private void CreateEdges(List<Vector2> nodePositions, List<int> layerSizes)
@@ -77,7 +76,6 @@ public class NetworkGraphWindow : MonoBehaviour
                     CreateEdge(nodePositions[startingIndex + j], nodePositions[startingIndex + leftLayerSize + k]);
                 }
             }
-
             startingIndex += leftLayerSize;
         }
     }

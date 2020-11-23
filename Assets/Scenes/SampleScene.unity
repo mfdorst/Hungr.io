@@ -391,6 +391,7 @@ MonoBehaviour:
   nodeSprite: {fileID: 21300000, guid: 1360fae95fd9643caba3f02ca5830dae, type: 3}
   nodeSize: 25
   edgeWidth: 3
+  layers: 050000000a0000000a00000003000000
 --- !u!1 &571164494
 GameObject:
   m_ObjectHideFlags: 0
